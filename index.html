@@ -167,34 +167,6 @@
 
       <div class="divider-label">Dinners booked</div>
       <div id="dinnerCards"></div>
-
-      <div class="btn-row">
-        <button class="btn secondary small" id="openEditInfo">Edit trip info</button>
-      </div>
-
-      <div class="card" id="editInfoCard" style="display:none">
-        <h2>Edit trip info</h2>
-        <label class="field">Hotel name</label><input id="editHotelName">
-        <label class="field">Address</label><input id="editHotelAddress">
-        <label class="field">Phone</label><input id="editHotelPhone">
-        <label class="field">Check-in time</label><input id="editHotelCheckin">
-        <div class="divider-label" style="margin-top:16px">Dinner 1</div>
-        <label class="field">Restaurant name</label><input id="editD1Name">
-        <label class="field">Location / area</label><input id="editD1Loc">
-        <label class="field">Date &amp; time</label><input id="editD1Time">
-        <div class="divider-label">Dinner 2</div>
-        <label class="field">Restaurant name</label><input id="editD2Name">
-        <label class="field">Location / area</label><input id="editD2Loc">
-        <label class="field">Date &amp; time</label><input id="editD2Time">
-        <div class="divider-label">Dinner 3</div>
-        <label class="field">Restaurant name</label><input id="editD3Name">
-        <label class="field">Location / area</label><input id="editD3Loc">
-        <label class="field">Date &amp; time</label><input id="editD3Time">
-        <div class="btn-row">
-          <button class="btn" id="saveInfoBtn">Save</button>
-          <button class="btn secondary" id="cancelInfoBtn">Cancel</button>
-        </div>
-      </div>
     </section>
 
     <!-- ============ MAP ============ -->
@@ -431,19 +403,6 @@
     });
   }
 
-  function openEditInfo() {
-    var t = Object.assign({}, DEFAULT_TRIP, state.trip || {});
-    document.getElementById("editHotelName").value = t.hotelName;
-    document.getElementById("editHotelAddress").value = t.hotelAddress;
-    document.getElementById("editHotelPhone").value = t.hotelPhone;
-    document.getElementById("editHotelCheckin").value = t.hotelCheckin;
-    document.getElementById("editD1Name").value = t.d1Name; document.getElementById("editD1Loc").value = t.d1Loc; document.getElementById("editD1Time").value = t.d1Time;
-    document.getElementById("editD2Name").value = t.d2Name; document.getElementById("editD2Loc").value = t.d2Loc; document.getElementById("editD2Time").value = t.d2Time;
-    document.getElementById("editD3Name").value = t.d3Name; document.getElementById("editD3Loc").value = t.d3Loc; document.getElementById("editD3Time").value = t.d3Time;
-    document.getElementById("editInfoCard").style.display = "block";
-    document.getElementById("editInfoCard").scrollIntoView({ behavior: "smooth" });
-  }
-
   // ---------------------------------------------------------------
   // Rendering: Map
   // ---------------------------------------------------------------
@@ -558,6 +517,9 @@
     html += "<tr><td class='hole-label'>Par</td>";
     for (h = 0; h < 9; h++) html += "<td class='hole-label'>" + c.holes[h][0] + "</td>";
     html += "<td class='hole-label'>" + c.holes.slice(0, 9).reduce(function (s, hh) { return s + hh[0]; }, 0) + "</td></tr>";
+    html += "<tr><td class='hole-label'>SI</td>";
+    for (h = 0; h < 9; h++) html += "<td class='hole-label'>" + c.holes[h][1] + "</td>";
+    html += "<td class='hole-label'></td></tr>";
     html += "<tr><td class='hole-label'>Score</td>";
     for (h = 0; h < 9; h++) html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'></td>";
     var outSum = gross.slice(0, 9).reduce(function (s, v) { return s + (v || 0); }, 0);
@@ -569,6 +531,9 @@
     html += "<tr><td class='hole-label'>Par</td>";
     for (h = 9; h < 18; h++) html += "<td class='hole-label'>" + c.holes[h][0] + "</td>";
     html += "<td class='hole-label'>" + c.holes.slice(9, 18).reduce(function (s, hh) { return s + hh[0]; }, 0) + "</td></tr>";
+    html += "<tr><td class='hole-label'>SI</td>";
+    for (h = 9; h < 18; h++) html += "<td class='hole-label'>" + c.holes[h][1] + "</td>";
+    html += "<td class='hole-label'></td></tr>";
     html += "<tr><td class='hole-label'>Score</td>";
     for (h = 9; h < 18; h++) html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'></td>";
     var inSum = gross.slice(9, 18).reduce(function (s, v) { return s + (v || 0); }, 0);
@@ -757,24 +722,6 @@
   });
   document.getElementById("pane-info").classList.add("active");
 
-  document.getElementById("openEditInfo").addEventListener("click", openEditInfo);
-  document.getElementById("cancelInfoBtn").addEventListener("click", function () {
-    document.getElementById("editInfoCard").style.display = "none";
-  });
-  document.getElementById("saveInfoBtn").addEventListener("click", function () {
-    var t = {
-      hotelName: document.getElementById("editHotelName").value,
-      hotelAddress: document.getElementById("editHotelAddress").value,
-      hotelPhone: document.getElementById("editHotelPhone").value,
-      hotelCheckin: document.getElementById("editHotelCheckin").value,
-      d1Name: document.getElementById("editD1Name").value, d1Loc: document.getElementById("editD1Loc").value, d1Time: document.getElementById("editD1Time").value,
-      d2Name: document.getElementById("editD2Name").value, d2Loc: document.getElementById("editD2Loc").value, d2Time: document.getElementById("editD2Time").value,
-      d3Name: document.getElementById("editD3Name").value, d3Loc: document.getElementById("editD3Loc").value, d3Time: document.getElementById("editD3Time").value
-    };
-    saveTripInfo(t);
-    document.getElementById("editInfoCard").style.display = "none";
-  });
-
   document.querySelectorAll("#boardScopeBar button").forEach(function (b) {
     b.addEventListener("click", function () { currentBoardScope = b.getAttribute("data-scope"); renderBoard(); });
   });
@@ -799,12 +746,6 @@
     state.scores[key] = { gross: gross };
     renderAll();
     db.collection("scores").doc(key).set({ course: course, pid: pid, gross: gross }).catch(function (e) { console.error("score save failed", e); });
-  }
-
-  function saveTripInfo(t) {
-    state.trip = t;
-    renderInfo();
-    db.collection("meta").doc("trip").set(t, { merge: true }).catch(function (e) { console.error("trip save failed", e); });
   }
 
   function saveLdnp(updates) {
