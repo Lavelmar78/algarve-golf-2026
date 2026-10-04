@@ -180,6 +180,7 @@
           <span><span class="dot" style="background:#b9502c"></span>Dinners</span>
           <span><span class="dot" style="background:#2563a8"></span>Marina</span>
           <span><span class="dot" style="background:#b9862f"></span>Sports bars</span>
+          <span><span class="dot" style="background:#8e44ad"></span>After hours</span>
         </div>
       </div>
     </section>
@@ -326,14 +327,22 @@
 
   var MAP_POINTS = [
     { name: "NH Lagos Algarve Resort (Hotel)", lat: 37.1057933, lng: -8.6762021, kind: "hotel", note: "Your base for the trip" },
-    { name: "Casa do Prego", lat: 37.0998851, lng: -8.6720907, kind: "dinner", note: "Thursday, 7:00 PM" },
-    { name: "Don Gull", lat: 37.1066037, lng: -8.6784608, kind: "dinner", note: "Friday, 7:00 PM" },
-    { name: "Tasca Jota On Fire", lat: 37.0962878, lng: -8.6743643, kind: "dinner", note: "Saturday, 7:30 PM" },
+    { name: "Casa do Prego", lat: 37.0998851, lng: -8.6720907, kind: "dinner", note: "Thursday, 7:00 PM \u2014 ~12 min walk from hotel" },
+    { name: "Don Gull", lat: 37.1066037, lng: -8.6784608, kind: "dinner", note: "Friday, 7:00 PM \u2014 ~4 min walk from hotel" },
+    { name: "Tasca Jota On Fire", lat: 37.0962878, lng: -8.6743643, kind: "dinner", note: "Saturday, 7:30 PM \u2014 ~17 min walk from hotel" },
     { name: "Marina de Lagos", lat: 37.1077183, lng: -8.6740215, kind: "marina", note: "Boats, cafes, the heart of town" },
     { name: "The Lighthouse Pub", lat: 37.108817, lng: -8.6729396, kind: "bar", note: "Sports bar right on the marina" },
     { name: "Dove & Sea Dog", lat: 37.1115429, lng: -8.6740909, kind: "bar", note: "Marina gastropub, good for a pint" },
-    { name: "Three Monkeys Bar", lat: 37.0995988, lng: -8.6726514, kind: "bar", note: "Old-town bar, open till 2am, pool/darts" }
+    { name: "Three Monkeys Bar", lat: 37.0995988, lng: -8.6726514, kind: "bar", note: "Old-town bar, open till 2am, pool/darts" },
+    { name: "After Hours Party Spot", lat: 37.1055921, lng: -8.6757393, kind: "party", note: "Rua Nova da Aldeia 8 \u2014 ~1 min walk from hotel" }
   ];
+
+  // Approx walking times from the hotel (straight-line distance x 1.3 route factor, ~4.8km/h)
+  var WALK_TIMES = {
+    "Casa do Prego": 12,
+    "Don Gull": 4,
+    "Tasca Jota On Fire": 17
+  };
 
   // ---------------------------------------------------------------
   // Scoring math
@@ -394,11 +403,13 @@
     [[t.d1Name, t.d1Loc, t.d1Time], [t.d2Name, t.d2Loc, t.d2Time], [t.d3Name, t.d3Loc, t.d3Time]].forEach(function (d) {
       var name = d[0], loc = d[1], time = d[2];
       if (!name && !loc && !time) return;
+      var walk = WALK_TIMES[name];
       var c = el("div", "card");
       c.innerHTML =
         '<h2>\uD83C\uDF7D\uFE0F ' + (name || "Dinner") + '</h2>' +
         (loc ? '<div class="row"><span class="label">Location</span><span class="value">' + loc + '</span></div>' : '') +
-        (time ? '<div class="row"><span class="label">Time</span><span class="value">' + time + '</span></div>' : '');
+        (time ? '<div class="row"><span class="label">Time</span><span class="value">' + time + '</span></div>' : '') +
+        (walk ? '<div class="row"><span class="label">Walk from hotel</span><span class="value">~' + walk + ' min</span></div>' : '');
       dinnerWrap.appendChild(c);
     });
   }
@@ -406,7 +417,7 @@
   // ---------------------------------------------------------------
   // Rendering: Map
   // ---------------------------------------------------------------
-  var MAP_COLORS = { hotel: "#1f5d3a", dinner: "#b9502c", marina: "#2563a8", bar: "#b9862f" };
+  var MAP_COLORS = { hotel: "#1f5d3a", dinner: "#b9502c", marina: "#2563a8", bar: "#b9862f", party: "#8e44ad" };
 
   function renderMap() {
     if (leafletMapInstance) { leafletMapInstance.invalidateSize(); return; }
