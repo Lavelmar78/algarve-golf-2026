@@ -48,7 +48,7 @@
     --team-a: #7fb1e6; --team-a-soft: #172433; --team-b: #e79a72; --team-b-soft: #2e2019;
   }
   * { box-sizing: border-box; }
-  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); }
+  html, body { height: 100%; margin: 0; background: var(--bg); color: var(--ink); overflow-x: hidden; max-width: 100%; }
   body { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); -webkit-tap-highlight-color: transparent; }
   html { scroll-padding-top: env(safe-area-inset-top, 0px); }
 
@@ -98,7 +98,8 @@
   nav.tabs button .ic { font-size: 17px; line-height: 1; }
   nav.tabs button.active { color: var(--green); }
 
-  table.score-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .score-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
+  table.score-table { border-collapse: collapse; font-size: 13px; min-width: 420px; }
   table.score-table th, table.score-table td { text-align: center; padding: 4px 2px; }
   table.score-table th { color: var(--ink-dim); font-weight: 600; font-size: 11px; }
   table.score-table td.hole-label { color: var(--ink-dim); }
@@ -537,7 +538,7 @@
     var html = '<p class="sub" style="margin-top:2px">' + p.name + ' \u2014 ' + chLabel + '</p>';
     html += '<p class="sub" style="margin-top:-4px">\uD83D\uDE80 Long Drive: Hole ' + comp.longDrive + ' &middot; \uD83C\uDFAF Nearest Pin: Hole ' + comp.nearestPin + '</p>';
 
-    html += '<table class="score-table"><thead><tr><th></th>';
+    html += '<div class="score-table-scroll"><table class="score-table"><thead><tr><th></th>';
     for (var h = 1; h <= 9; h++) html += "<th>" + h + holeBadge(h) + "</th>";
     html += "<th>OUT</th></tr></thead><tbody>";
     html += "<tr><td class='hole-label'>Par</td>";
@@ -552,9 +553,9 @@
       html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'" + (isComp ? " style='border-color:var(--gold);border-width:2px'" : "") + "></td>";
     }
     var outSum = gross.slice(0, 9).reduce(function (s, v) { return s + (v || 0); }, 0);
-    html += "<td class='hole-label'>" + (outSum || "") + "</td></tr></tbody></table>";
+    html += "<td class='hole-label'>" + (outSum || "") + "</td></tr></tbody></table></div>";
 
-    html += '<table class="score-table" style="margin-top:8px"><thead><tr><th></th>';
+    html += '<div class="score-table-scroll" style="margin-top:8px"><table class="score-table"><thead><tr><th></th>';
     for (h = 10; h <= 18; h++) html += "<th>" + h + holeBadge(h) + "</th>";
     html += "<th>IN</th></tr></thead><tbody>";
     html += "<tr><td class='hole-label'>Par</td>";
@@ -569,7 +570,7 @@
       html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'" + (isComp2 ? " style='border-color:var(--gold);border-width:2px'" : "") + "></td>";
     }
     var inSum = gross.slice(9, 18).reduce(function (s, v) { return s + (v || 0); }, 0);
-    html += "<td class='hole-label'>" + (inSum || "") + "</td></tr></tbody></table>";
+    html += "<td class='hole-label'>" + (inSum || "") + "</td></tr></tbody></table></div>";
 
     var pts = roundTotal(gross, ch, currentScoreCourse);
     html += '<div class="row" style="margin-top:12px;border-top:1px solid var(--line);padding-top:10px">' +
