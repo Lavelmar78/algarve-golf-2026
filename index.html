@@ -295,6 +295,13 @@
   };
   var COURSE_ORDER = ["Boavista", "Palmares", "Espiche"];
 
+  // Long Drive / Nearest the Pin holes, marked on the scorecards
+  var COMP_HOLES = {
+    Boavista: { longDrive: 16, nearestPin: 14 },
+    Palmares: { longDrive: 13, nearestPin: 17 },
+    Espiche:  { longDrive: 17, nearestPin: 12 }
+  };
+
   // ---------------------------------------------------------------
   // Starting roster — preloaded, editable in-app.
   // Teams balanced 6-a-side by combined handicap (Europe 118.0 / USA 114.4).
@@ -518,12 +525,20 @@
     var key = currentScoreCourse + "_" + currentScorePlayer;
     var gross = (state.scores[key] && state.scores[key].gross) ? state.scores[key].gross.slice() : new Array(18).fill(null);
 
+    var comp = COMP_HOLES[currentScoreCourse];
+    function holeBadge(holeNum) {
+      if (holeNum === comp.longDrive) return '<br><span style="font-size:12px">\uD83D\uDE80</span>';
+      if (holeNum === comp.nearestPin) return '<br><span style="font-size:12px">\uD83C\uDFAF</span>';
+      return '';
+    }
+
     var body = document.getElementById("scoreCardBody");
     var chLabel = ch === null ? "no index set" : ("CH " + ch);
     var html = '<p class="sub" style="margin-top:2px">' + p.name + ' \u2014 ' + chLabel + '</p>';
+    html += '<p class="sub" style="margin-top:-4px">\uD83D\uDE80 Long Drive: Hole ' + comp.longDrive + ' &middot; \uD83C\uDFAF Nearest Pin: Hole ' + comp.nearestPin + '</p>';
 
     html += '<table class="score-table"><thead><tr><th></th>';
-    for (var h = 1; h <= 9; h++) html += "<th>" + h + "</th>";
+    for (var h = 1; h <= 9; h++) html += "<th>" + h + holeBadge(h) + "</th>";
     html += "<th>OUT</th></tr></thead><tbody>";
     html += "<tr><td class='hole-label'>Par</td>";
     for (h = 0; h < 9; h++) html += "<td class='hole-label'>" + c.holes[h][0] + "</td>";
@@ -532,12 +547,15 @@
     for (h = 0; h < 9; h++) html += "<td class='hole-label'>" + c.holes[h][1] + "</td>";
     html += "<td class='hole-label'></td></tr>";
     html += "<tr><td class='hole-label'>Score</td>";
-    for (h = 0; h < 9; h++) html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'></td>";
+    for (h = 0; h < 9; h++) {
+      var isComp = (h + 1 === comp.longDrive || h + 1 === comp.nearestPin);
+      html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'" + (isComp ? " style='border-color:var(--gold);border-width:2px'" : "") + "></td>";
+    }
     var outSum = gross.slice(0, 9).reduce(function (s, v) { return s + (v || 0); }, 0);
     html += "<td class='hole-label'>" + (outSum || "") + "</td></tr></tbody></table>";
 
     html += '<table class="score-table" style="margin-top:8px"><thead><tr><th></th>';
-    for (h = 10; h <= 18; h++) html += "<th>" + h + "</th>";
+    for (h = 10; h <= 18; h++) html += "<th>" + h + holeBadge(h) + "</th>";
     html += "<th>IN</th></tr></thead><tbody>";
     html += "<tr><td class='hole-label'>Par</td>";
     for (h = 9; h < 18; h++) html += "<td class='hole-label'>" + c.holes[h][0] + "</td>";
@@ -546,7 +564,10 @@
     for (h = 9; h < 18; h++) html += "<td class='hole-label'>" + c.holes[h][1] + "</td>";
     html += "<td class='hole-label'></td></tr>";
     html += "<tr><td class='hole-label'>Score</td>";
-    for (h = 9; h < 18; h++) html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'></td>";
+    for (h = 9; h < 18; h++) {
+      var isComp2 = (h + 1 === comp.longDrive || h + 1 === comp.nearestPin);
+      html += "<td><input type='number' inputmode='numeric' min='1' max='15' data-hole='" + h + "' value='" + (gross[h] == null ? "" : gross[h]) + "'" + (isComp2 ? " style='border-color:var(--gold);border-width:2px'" : "") + "></td>";
+    }
     var inSum = gross.slice(9, 18).reduce(function (s, v) { return s + (v || 0); }, 0);
     html += "<td class='hole-label'>" + (inSum || "") + "</td></tr></tbody></table>";
 
