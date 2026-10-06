@@ -361,7 +361,9 @@
     return Math.round(Number(index) * (c.slope / 113) + (c.cr - c.par));
   }
   function holePoints(gross, ch, si, par) {
-    if (gross === null || gross === undefined || gross === "" || isNaN(gross)) return null;
+    // A gross score below 1 stroke isn't possible in golf (0, blank, or negative
+    // all mean "not yet scored") — treat exactly like a blank hole, not a miracle score.
+    if (gross === null || gross === undefined || gross === "" || isNaN(gross) || gross < 1) return null;
     if (ch === null) return null;
     var strokes = Math.floor(ch / 18) + (si <= (((ch % 18) + 18) % 18) ? 1 : 0);
     var net = gross - strokes;
@@ -515,7 +517,7 @@
     PLAYER_IDS.forEach(function (pid) {
       var p = state.players[pid] || DEFAULT_PLAYERS[pid];
       var key = currentScoreCourse + "_" + pid;
-      var hasScore = state.scores[key] && state.scores[key].gross && state.scores[key].gross.some(function (v) { return v !== null && v !== undefined && v !== ""; });
+      var hasScore = state.scores[key] && state.scores[key].gross && state.scores[key].gross.some(function (v) { return v !== null && v !== undefined && v !== "" && v >= 1; });
       var chip = el("button", "player-chip" + (pid === currentScorePlayer ? " active" : "") + (hasScore ? " done" : ""), p.name);
       chip.onclick = function () { currentScorePlayer = pid; renderScorePane(); };
       chipWrap.appendChild(chip);
