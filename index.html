@@ -93,10 +93,17 @@
   .btn-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
 
   nav.tabs { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--card); border-top: 1px solid var(--line); }
-  nav.tabs .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, 1fr); }
+  nav.tabs .inner { max-width: 640px; margin: 0 auto; display: grid; grid-template-columns: repeat(7, 1fr); }
   nav.tabs button { background: none; border: none; padding: 9px 1px 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; color: var(--ink-dim); font-size: 9.5px; font-family: inherit; }
   nav.tabs button .ic { font-size: 17px; line-height: 1; }
   nav.tabs button.active { color: var(--green); }
+
+  .fourball-card { border-radius: 10px; border: 1px solid var(--line); padding: 10px 12px; margin-bottom: 8px; }
+  .fourball-title { font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .fourball-player { display: flex; align-items: center; justify-content: space-between; padding: 5px 0; border-bottom: 1px dashed var(--line); font-size: 13.5px; }
+  .fourball-player:last-child { border-bottom: none; }
+  .fourball-player .fp-right { display: flex; align-items: center; gap: 6px; }
+  .mode-tag { font-size: 10.5px; color: var(--ink-dim); }
 
   .score-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 0 -16px; padding: 0 16px; }
   table.score-table { border-collapse: collapse; font-size: 13px; min-width: 420px; }
@@ -195,6 +202,16 @@
       <div id="playerList"></div>
     </section>
 
+    <!-- ============ GROUPS ============ -->
+    <section class="pane" id="pane-groups">
+      <div class="course-tab-bar" id="groupsCourseBar"></div>
+      <div class="card">
+        <h2 id="groupsTitle">—</h2>
+        <p class="sub">2 USA / 2 Europe in every fourball &mdash; buggy pair shares the cart, the other two walk</p>
+        <div id="groupsList"></div>
+      </div>
+    </section>
+
     <!-- ============ SCORECARD ============ -->
     <section class="pane" id="pane-score">
       <div class="course-tab-bar" id="courseTabBar"></div>
@@ -248,6 +265,7 @@
       <button data-pane="info" class="active"><span class="ic">🏨</span>Info</button>
       <button data-pane="map"><span class="ic">🗺️</span>Map</button>
       <button data-pane="players"><span class="ic">👥</span>Players</button>
+      <button data-pane="groups"><span class="ic">🏌️</span>Groups</button>
       <button data-pane="score"><span class="ic">⛳</span>Score</button>
       <button data-pane="board"><span class="ic">🏆</span>Board</button>
       <button data-pane="prizes"><span class="ic">💶</span>Prizes</button>
@@ -301,6 +319,26 @@
     Boavista: { longDrive: 16, nearestPin: 14 },
     Palmares: { longDrive: 13, nearestPin: 17 },
     Espiche:  { longDrive: 17, nearestPin: 12 }
+  };
+
+  // Daily fourballs: buggy pair (2) + walking pair (2), always 2 USA / 2 Europe,
+  // rotated so no two people repeat the same fourball across the trip.
+  var FOURBALLS = {
+    Boavista: [
+      { buggy: ["p8", "p4"], walk: ["p1", "p2"] },
+      { buggy: ["p7", "p10"], walk: ["p3", "p5"] },
+      { buggy: ["p11", "p12"], walk: ["p6", "p9"] }
+    ],
+    Palmares: [
+      { buggy: ["p8", "p10"], walk: ["p3", "p9"] },
+      { buggy: ["p7", "p12"], walk: ["p6", "p2"] },
+      { buggy: ["p11", "p4"], walk: ["p1", "p5"] }
+    ],
+    Espiche: [
+      { buggy: ["p8", "p12"], walk: ["p6", "p5"] },
+      { buggy: ["p7", "p4"], walk: ["p1", "p9"] },
+      { buggy: ["p11", "p10"], walk: ["p3", "p2"] }
+    ]
   };
 
   // ---------------------------------------------------------------
@@ -386,6 +424,7 @@
   var currentScoreCourse = "Boavista";
   var currentScorePlayer = "p1";
   var currentBoardScope = "overall";
+  var currentGroupsCourse = "Boavista";
   var leafletMapInstance = null;
 
   function el(tag, cls, html) {
@@ -489,6 +528,42 @@
         var field = input.getAttribute("data-field");
         savePlayerField(pid, field, input.value);
       });
+    });
+  }
+
+  // ---------------------------------------------------------------
+  // Rendering: Groups
+  // ---------------------------------------------------------------
+  function renderGroups() {
+    var bar = document.getElementById("groupsCourseBar");
+    bar.innerHTML = "";
+    COURSE_ORDER.forEach(function (c, idx) {
+      var b = el("button", null, "Day " + (idx + 1) + " \u00b7 " + c);
+      if (c === currentGroupsCourse) b.className = "active";
+      b.onclick = function () { currentGroupsCourse = c; renderGroups(); };
+      bar.appendChild(b);
+    });
+
+    document.getElementById("groupsTitle").textContent = currentGroupsCourse + " Fourballs";
+
+    var list = document.getElementById("groupsList");
+    list.innerHTML = "";
+    var groups = FOURBALLS[currentGroupsCourse] || [];
+    groups.forEach(function (g, idx) {
+      var card = el("div", "fourball-card");
+      card.innerHTML = '<div class="fourball-title">Fourball ' + (idx + 1) + '</div>';
+      var all = g.buggy.map(function (pid) { return { pid: pid, mode: "\uD83D\uDE97 Buggy" }; })
+        .concat(g.walk.map(function (pid) { return { pid: pid, mode: "\uD83D\uDEB6 Walking" }; }));
+      all.forEach(function (entry) {
+        var p = state.players[entry.pid] || DEFAULT_PLAYERS[entry.pid];
+        var row = el("div", "fourball-player");
+        row.innerHTML =
+          '<span>' + p.name + '</span>' +
+          '<span class="fp-right"><span class="mode-tag">' + entry.mode + '</span>' +
+          '<span class="pill ' + (p.team === "USA" ? "b" : "a") + '">' + (p.team === "USA" ? "USA" : "EUR") + '</span></span>';
+        card.appendChild(row);
+      });
+      list.appendChild(card);
     });
   }
 
@@ -737,7 +812,7 @@
   }
 
   function renderAll() {
-    renderInfo(); renderPlayers(); renderScorePane(); renderBoard(); renderPrizes();
+    renderInfo(); renderPlayers(); renderGroups(); renderScorePane(); renderBoard(); renderPrizes();
     if (document.getElementById("pane-map").classList.contains("active")) renderMap();
   }
 
